@@ -1,6 +1,7 @@
 from setuptools import setup
 from torch.utils.cpp_extension import CppExtension, BuildExtension
 import os
+import sys
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 
