@@ -39,11 +39,11 @@ jobs:
           
           # OPTIMIZATION: Install CPU-only Torch on Linux/Windows to save bandwidth
           # Standard install on Mac (no CPU-specific index usually needed/available in same way)
-          CIBW_BEFORE_BUILD: "pip install torch"
-          CIBW_BEFORE_BUILD_LINUX: "pip install torch --index-url https://download.pytorch.org/whl/cpu"
-          CIBW_BEFORE_BUILD_WINDOWS: "pip install torch --index-url https://download.pytorch.org/whl/cpu"
+          CIBW_BEFORE_BUILD: "pip install torch==2.5.1"
+          CIBW_BEFORE_BUILD_LINUX: "pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu"
+          CIBW_BEFORE_BUILD_WINDOWS: "pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu"
           
-          CIBW_ENVIRONMENT: "CXXFLAGS=-O3"
+          CIBW_ENVIRONMENT: "CXXFLAGS='-O3 -D_GLIBCXX_USE_CXX11_ABI=0'"
           
           # CRITICAL: Exclude libtorch from being bundled (Linux)
           # 'auditwheel' often fails to find libtorch or produces bloated wheels.
