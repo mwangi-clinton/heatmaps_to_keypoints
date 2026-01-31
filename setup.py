@@ -16,6 +16,7 @@ setup(
             ],
             include_dirs=[this_dir],  
             extra_compile_args=["-O3"],
+            define_macros=[('_GLIBCXX_USE_CXX11_ABI', '0')],
         )
     ],
     cmdclass={"build_ext": BuildExtension},
