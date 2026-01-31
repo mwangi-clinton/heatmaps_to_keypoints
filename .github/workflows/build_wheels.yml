@@ -38,10 +38,14 @@ jobs:
           CIBW_ENVIRONMENT: "CXXFLAGS=-O3"
           
           # CRITICAL: Exclude libtorch from being bundled (Linux)
-          # 'auditwheel repair' defaults to bundling everything. 
-          # We must exclude torch libs to avoid creating massive broken wheels.
+          # 'auditwheel' often fails to find libtorch or produces bloated wheels.
+          # Since this is a PyTorch extension, we skip bundling and rely on the user's installed torch.
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
-            auditwheel repair -w {dest_dir} {wheel} --exclude libtorch_cpu.so --exclude libtorch_python.so --exclude libc10.so
+            av_auditwheel_repair() {
+              mkdir -p {dest_dir}
+              cp {wheel} {dest_dir}/
+            }
+            av_auditwheel_repair
 
           # CRITICAL: macOS 'delocate' also tries to bundle libtorch and fails/bloats.
           # There is no simple --exclude for delocate, so we SKIP repair for macOS.
