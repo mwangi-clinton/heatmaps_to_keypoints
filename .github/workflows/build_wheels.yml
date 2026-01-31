@@ -28,6 +28,7 @@ jobs:
           # Skip PyPy (pp*) and musllinux (Alpine) as Torch support is limited/complex
           CIBW_SKIP: "pp* *musllinux*"
           CIBW_ARCHS_WINDOWS: "AMD64"
+          CIBW_ARCHS_LINUX: "x86_64"
           
           # OPTIMIZATION: Install CPU-only Torch on Linux/Windows to save bandwidth
           # Standard install on Mac (no CPU-specific index usually needed/available in same way)
