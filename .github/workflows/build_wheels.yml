@@ -42,7 +42,7 @@ jobs:
           # 'auditwheel' often fails to find libtorch or produces bloated wheels.
           # Since this is a PyTorch extension, we skip bundling and rely on the user's installed torch.
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
-            mkdir -p {dest_dir} && cp {wheel} {dest_dir}/
+            mkdir -p {dest_dir} && cp {wheel} {dest_dir}/$(echo $(basename {wheel}) | sed 's/linux_x86_64/manylinux2014_x86_64/')
 
           # CRITICAL: macOS 'delocate' also tries to bundle libtorch and fails/bloats.
           # There is no simple --exclude for delocate, so we SKIP repair for macOS.
