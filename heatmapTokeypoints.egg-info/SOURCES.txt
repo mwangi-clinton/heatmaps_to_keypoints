@@ -1,0 +1,14 @@
+LICENSE.txt
+MANIFEST.in
+README.md
+decoder_bindings.cc
+decoding.h
+heatmaps_to_keypoints.cc
+pyproject.toml
+setup.py
+heatmapTokeypoints.egg-info/PKG-INFO
+heatmapTokeypoints.egg-info/SOURCES.txt
+heatmapTokeypoints.egg-info/dependency_links.txt
+heatmapTokeypoints.egg-info/not-zip-safe
+heatmapTokeypoints.egg-info/requires.txt
+heatmapTokeypoints.egg-info/top_level.txt

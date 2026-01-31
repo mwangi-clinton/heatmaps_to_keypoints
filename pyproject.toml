@@ -1,0 +1,25 @@
+[build-system]
+requires = [
+    "setuptools>=61",
+    "wheel",
+    "torch",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "heatmapTokeypoints"
+version = "0.0.1"
+description = "Fast C++ heatmap-to-keypoints decoder for pose estimation"
+readme = "README.md"
+license = {file = "LICENSE.txt"}
+authors = [
+    {name = "Clinton Mwangi"}
+]
+requires-python = ">=3.9"
+dependencies = ["torch"]
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C++",
+    "Operating System :: POSIX :: Linux",
+]

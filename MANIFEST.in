@@ -1,0 +1,3 @@
+include decoding.h
+include README.md
+include LICENSE.txt
