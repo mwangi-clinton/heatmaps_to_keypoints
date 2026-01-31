@@ -49,9 +49,13 @@ jobs:
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
             delocate-listdeps {wheel} && mkdir -p {dest_dir} && cp {wheel} {dest_dir}/
 
-          # REQUIRED: Test the wheel works (needs torch installed in test env)
-          CIBW_TEST_REQUIRES: "torch"
-          CIBW_TEST_COMMAND: "python -c 'import torch; import heatmaps_to_keypoints; print(\"Import successful\")'"
+          # REQUIRED: Test the wheel works
+          # We install CPU-only torch manually to avoid downloading 2GB+ CUDA libs on Linux/Win
+          CIBW_BEFORE_TEST: "pip install torch"
+          CIBW_BEFORE_TEST_LINUX: "pip install torch --index-url https://download.pytorch.org/whl/cpu"
+          CIBW_BEFORE_TEST_WINDOWS: "pip install torch --index-url https://download.pytorch.org/whl/cpu"
+          
+          CIBW_TEST_COMMAND: "python {project}/tests/import_test.py"
 
       - name: Upload wheel artifacts
         uses: actions/upload-artifact@v4
