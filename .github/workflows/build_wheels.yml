@@ -1,0 +1,71 @@
+name: Build Wheels
+
+on:
+  push:
+    branches: [ main, master ]
+    tags:
+      - "v*"
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.16.5
+        env:
+          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-*"
+          # Skip PyPy (pp*) and musllinux (Alpine) as Torch support is limited/complex
+          CIBW_SKIP: "pp* *musllinux*"
+          
+          # OPTIMIZATION: Install CPU-only Torch to save bandwidth/time (headers are the same)
+          CIBW_BEFORE_BUILD: "pip install torch --index-url https://download.pytorch.org/whl/cpu"
+          
+          CIBW_ENVIRONMENT: "CXXFLAGS=-O3"
+          
+          # CRITICAL: Exclude libtorch from being bundled (Linux)
+          # 'auditwheel repair' defaults to bundling everything. 
+          # We must exclude torch libs to avoid creating massive broken wheels.
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
+            auditwheel repair -w {dest_dir} {wheel} --exclude libtorch_cpu.so --exclude libtorch_python.so --exclude libc10.so
+
+          # REQUIRED: Test the wheel works (needs torch installed in test env)
+          CIBW_TEST_REQUIRES: "torch"
+          CIBW_TEST_COMMAND: "python -c 'import heatmaps_to_keypoints; print(\"Import successful\")'"
+
+      - name: Upload wheel artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl
+
+  publish:
+    name: Publish to PyPI
+    needs: build_wheels
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          # Download all artifacts to 'dist'; creates subdirs based on artifact names
+          path: dist
+          merge-multiple: true # Flattens the file structure so all .whl are in dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          packages_dir: dist/
