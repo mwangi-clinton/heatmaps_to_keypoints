@@ -51,7 +51,7 @@ jobs:
 
           # REQUIRED: Test the wheel works (needs torch installed in test env)
           CIBW_TEST_REQUIRES: "torch"
-          CIBW_TEST_COMMAND: "python -c 'import heatmaps_to_keypoints; print(\"Import successful\")'"
+          CIBW_TEST_COMMAND: "python -c 'import torch; import heatmaps_to_keypoints; print(\"Import successful\")'"
 
       - name: Upload wheel artifacts
         uses: actions/upload-artifact@v4
