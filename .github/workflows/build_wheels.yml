@@ -43,6 +43,12 @@ jobs:
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
             auditwheel repair -w {dest_dir} {wheel} --exclude libtorch_cpu.so --exclude libtorch_python.so --exclude libc10.so
 
+          # CRITICAL: macOS 'delocate' also tries to bundle libtorch and fails/bloats.
+          # There is no simple --exclude for delocate, so we SKIP repair for macOS.
+          # We just copy the wheel to the destination. PyTorch extensions rely on user's installed torch.
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
+            delocate-listdeps {wheel} && mkdir -p {dest_dir} && cp {wheel} {dest_dir}/
+
           # REQUIRED: Test the wheel works (needs torch installed in test env)
           CIBW_TEST_REQUIRES: "torch"
           CIBW_TEST_COMMAND: "python -c 'import heatmaps_to_keypoints; print(\"Import successful\")'"
