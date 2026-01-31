@@ -21,6 +21,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.16.5
         env:
@@ -28,7 +34,7 @@ jobs:
           # Skip PyPy (pp*) and musllinux (Alpine) as Torch support is limited/complex
           CIBW_SKIP: "pp* *musllinux*"
           CIBW_ARCHS_WINDOWS: "AMD64"
-          CIBW_ARCHS_LINUX: "x86_64"
+          CIBW_ARCHS_LINUX: "x86_64 aarch64"
           
           # OPTIMIZATION: Install CPU-only Torch on Linux/Windows to save bandwidth
           # Standard install on Mac (no CPU-specific index usually needed/available in same way)
