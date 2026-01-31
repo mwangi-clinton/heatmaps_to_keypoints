@@ -28,8 +28,10 @@ jobs:
           # Skip PyPy (pp*) and musllinux (Alpine) as Torch support is limited/complex
           CIBW_SKIP: "pp* *musllinux*"
           
-          # OPTIMIZATION: Install CPU-only Torch to save bandwidth/time (headers are the same)
-          CIBW_BEFORE_BUILD: "pip install torch --index-url https://download.pytorch.org/whl/cpu"
+          # OPTIMIZATION: Install CPU-only Torch on Linux to save bandwidth
+          # Standard install on Windows/Mac to ensure robustness
+          CIBW_BEFORE_BUILD: "pip install torch"
+          CIBW_BEFORE_BUILD_LINUX: "pip install torch --index-url https://download.pytorch.org/whl/cpu"
           
           CIBW_ENVIRONMENT: "CXXFLAGS=-O3"
           
