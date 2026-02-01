@@ -43,7 +43,13 @@ jobs:
           CIBW_BEFORE_BUILD_LINUX: "pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu"
           CIBW_BEFORE_BUILD_WINDOWS: "pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu"
           
-          CIBW_ENVIRONMENT: "CXXFLAGS='-O3 -D_GLIBCXX_USE_CXX11_ABI=0'"
+          # Platform-specific compiler flags
+          # Linux: Use old ABI for PyTorch compatibility
+          CIBW_ENVIRONMENT_LINUX: "CXXFLAGS='-O3 -D_GLIBCXX_USE_CXX11_ABI=0'"
+          # macOS: Only optimization, no ABI flag (uses libc++ not libstdc++)
+          CIBW_ENVIRONMENT_MACOS: "CXXFLAGS='-O3'"
+          # Windows: Use MSVC optimization
+          CIBW_ENVIRONMENT_WINDOWS: "CXXFLAGS='/O2'"
           
           # CRITICAL: Exclude libtorch from being bundled (Linux)
           # We manually rename the wheel to manylinux tags to allow upload to PyPI,
