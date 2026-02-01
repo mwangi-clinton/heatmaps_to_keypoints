@@ -7,7 +7,7 @@ this_dir = os.path.dirname(os.path.abspath(__file__))
 
 setup(
     name="heatmaps_to_keypoints",
-    version="0.0.1",
+    version="0.0.4",
     ext_modules=[
         CppExtension(
             name="heatmaps_to_keypoints",

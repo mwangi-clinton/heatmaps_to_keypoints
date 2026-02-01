@@ -46,10 +46,20 @@ jobs:
           CIBW_ENVIRONMENT: "CXXFLAGS='-O3 -D_GLIBCXX_USE_CXX11_ABI=0'"
           
           # CRITICAL: Exclude libtorch from being bundled (Linux)
-          # 'auditwheel' often fails to find libtorch or produces bloated wheels.
-          # Since this is a PyTorch extension, we skip bundling and rely on the user's installed torch.
+          # We manually rename the wheel to manylinux tags to allow upload to PyPI,
+          # as we skip auditwheel to avoid bundling the massive PyTorch libraries.
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
-            mkdir -p {dest_dir} && cp {wheel} {dest_dir}/$(echo $(basename {wheel}) | sed -e 's/linux_x86_64/manylinux2014_x86_64/' -e 's/linux_aarch64/manylinux_2_28_aarch64/')
+            mkdir -p {dest_dir} &&
+            fname=$(basename {wheel}) &&
+            echo "Renaming $fname..." &&
+            if [[ "$fname" == *"x86_64"* ]]; then
+              new_fname=$(echo $fname | sed 's/linux_x86_64/manylinux2014_x86_64/')
+            elif [[ "$fname" == *"aarch64"* ]]; then
+              new_fname=$(echo $fname | sed 's/linux_aarch64/manylinux_2_28_aarch64/')
+            else
+              new_fname=$fname
+            fi &&
+            cp {wheel} {dest_dir}/$new_fname
 
           # CRITICAL: macOS 'delocate' also tries to bundle libtorch and fails/bloats.
           # There is no simple --exclude for delocate, so we SKIP repair for macOS.
