@@ -26,33 +26,47 @@ def pkg_config_flags(package_name='opencv4'):
             elif token.startswith('-l'):
                 libraries.append(token[2:])
             else:
-                # pass through other flags
                 extra_compile_args.append(token)
 
         return include_dirs, library_dirs, libraries, extra_compile_args
     except Exception:
         return [], [], [], []
 
-# Try to detect OpenCV via pkg-config, fall back to common locations
+# Get OpenCV paths (via pkg-config or fallback)
 include_dirs, library_dirs, libraries, extra_compile_args = pkg_config_flags('opencv4')
+
 if not include_dirs:
-    # Common Homebrew path on macOS Apple Silicon
-    brew_prefix = '/opt/homebrew'
-    if sys.platform == 'darwin' and os.path.exists(os.path.join(brew_prefix, 'include', 'opencv4')):
-        include_dirs = [os.path.join(brew_prefix, 'include', 'opencv4')]
-        library_dirs = [os.path.join(brew_prefix, 'lib')]
+    if sys.platform == 'darwin':
+        # macOS Homebrew fallback (Apple Silicon or Intel)
+        brew_prefix = '/opt/homebrew' if os.uname().machine == 'arm64' else '/usr/local'
+        if os.path.exists(os.path.join(brew_prefix, 'include', 'opencv4')):
+            include_dirs = [os.path.join(brew_prefix, 'include', 'opencv4')]
+            library_dirs = [os.path.join(brew_prefix, 'lib')]
+    elif sys.platform == 'win32':
+        # Windows fallback (assuming choco install to C:\opencv)
+        opencv_dir = os.environ.get('OPENCV_DIR', r'C:\opencv\build')
+        include_dirs = [os.path.join(opencv_dir, 'include')]
+        lib_dir = os.path.join(opencv_dir, 'x64', 'vc16', 'lib')  # Adjust vcXX based on your MSVC version (vc15/vc16/vc17)
+        library_dirs = [lib_dir]
+        libraries = ['opencv_core490', 'opencv_imgproc490', 'opencv_highgui490']  # Adjust version (e.g., 490 for 4.9.0); use 'opencv_world490' if built as single lib
     else:
+        # Linux fallback
         include_dirs = ['/usr/include/opencv4']
-        library_dirs = ['/usr/lib']
-    libraries = ['opencv_core', 'opencv_imgproc', 'opencv_highgui']
+        library_dirs = ['/usr/lib64']  # Or /usr/lib
+
+    if not libraries:
+        libraries = ['opencv_core', 'opencv_imgproc', 'opencv_highgui']
+
+# Only pybind11 and OpenCV; no Torch
+include_dirs += [pybind11.get_include()]
 
 ext_modules = [
     Extension(
         name='my_keypoints.bindings',
         sources=['src/my_keypoints/bindings.cc', 'src/heatmaps_to_keypoints.cc'],
-        include_dirs=[pybind11.get_include()] + include_dirs,
-        libraries=libraries,
+        include_dirs=include_dirs,
         library_dirs=library_dirs,
+        libraries=libraries,
         language='c++',
         extra_compile_args=['-std=c++17'] + extra_compile_args,
     )

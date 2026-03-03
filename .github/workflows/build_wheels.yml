@@ -27,60 +27,52 @@ jobs:
         with:
           platforms: all
 
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libopencv-dev pkg-config
+
+      - name: Install Windows dependencies
+        if: runner.os == 'Windows'
+        run: |
+          choco install opencv --version=4.9.0 --params "/InstallationPath:C:\\opencv /Environment"
+          choco install pkgconfiglite  # Optional if fallback works
+
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
           brew update
-          brew install opencv pkg-config
+          brew install opencv@4 pkg-config
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.16.5
         env:
           CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-*"
-          # Skip PyPy (pp*) and musllinux (Alpine) as Torch support is limited/complex
           CIBW_SKIP: "pp* *musllinux*"
           CIBW_ARCHS_WINDOWS: "AMD64"
           CIBW_ARCHS_LINUX: "x86_64 aarch64"
           CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux_2_28"
 
-          # OPTIMIZATION: Install CPU-only Torch on Linux/Windows to save bandwidth
-          # Standard install on Mac (no CPU-specific index usually needed/available in same way)
-          CIBW_BEFORE_BUILD: "pip install torch==2.5.1"
-          CIBW_BEFORE_BUILD_LINUX: "pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu"
-          CIBW_BEFORE_BUILD_WINDOWS: "pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu"
+          # No Torch install for build
+          CIBW_BEFORE_BUILD: "pip install pybind11" # Ensure pybind11 is available if needed
 
-          # Platform-specific compiler flags
-          # Linux: Use old ABI for PyTorch compatibility
-          CIBW_ENVIRONMENT_LINUX: "CXXFLAGS='-O3 -D_GLIBCXX_USE_CXX11_ABI=0'"
-          # macOS: Only optimization, no ABI flag (uses libc++ not libstdc++)
+          # Compiler flags (no Torch ABI specifics)
+          CIBW_ENVIRONMENT_LINUX: "CXXFLAGS='-O3'"
           CIBW_ENVIRONMENT_MACOS: "CXXFLAGS='-O3'"
-          # Windows: Use MSVC optimization
           CIBW_ENVIRONMENT_WINDOWS: "CXXFLAGS='/O2'"
 
-          # CRITICAL: Exclude libtorch from being bundled (Linux)
-          # We manually rename the wheel to manylinux tags to allow upload to PyPI,
-          # as we skip auditwheel to avoid bundling the massive PyTorch libraries.
-          CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
-            mkdir -p {dest_dir} &&
-            fname=$(basename {wheel}) &&
-            echo "Renaming $fname..." &&
-            if [[ "$fname" == *"x86_64"* ]]; then
-              new_fname=$(echo $fname | sed 's/linux_x86_64/manylinux2014_x86_64/')
-            elif [[ "$fname" == *"aarch64"* ]]; then
-              new_fname=$(echo $fname | sed 's/linux_aarch64/manylinux_2_28_aarch64/')
-            else
-              new_fname=$fname
-            fi &&
-            cp {wheel} {dest_dir}/$new_fname
+          # Linux: Simple auditwheel (no Torch to skip bundling)
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair -w {dest_dir} {wheel}"
 
-          # CRITICAL: macOS 'delocate' also tries to bundle libtorch and fails/bloats.
-          # There is no simple --exclude for delocate, so we SKIP repair for macOS.
-          # We just copy the wheel to the destination. PyTorch extensions rely on user's installed torch.
-          CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
-            delocate-wheel -w {dest_dir} {wheel}
+          # macOS: delocate
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: "delocate-wheel -w {dest_dir} {wheel}"
 
-          # REQUIRED: Test the wheel works
-          # We install CPU-only torch manually to avoid downloading 2GB+ CUDA libs on Linux/Win
+          # Windows: delvewheel
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
+
+          # Tests: If tests require Torch, keep; else remove
+          # Assuming tests might still need Torch (e.g., to generate heatmaps), but if not, remove these
           CIBW_BEFORE_TEST: "pip install torch==2.5.1"
           CIBW_BEFORE_TEST_LINUX: "pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu"
           CIBW_BEFORE_TEST_WINDOWS: "pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu"
@@ -104,9 +96,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          # Download all artifacts to 'dist'; creates subdirs based on artifact names
           path: dist
-          merge-multiple: true # Flattens the file structure so all .whl are in dist/
+          merge-multiple: true
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
