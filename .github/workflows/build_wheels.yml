@@ -38,6 +38,7 @@ jobs:
         run: |
           choco install opencv --version=4.9.0 --params "/InstallationPath:C:\\opencv /Environment"
           choco install pkgconfiglite  # Optional if fallback works
+          pip install delvewheel
 
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
