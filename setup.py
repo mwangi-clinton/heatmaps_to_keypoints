@@ -57,6 +57,12 @@ if not include_dirs:
     if not libraries:
         libraries = ['opencv_core', 'opencv_imgproc', 'opencv_highgui']
 
+# Conditionally set compiler flag based on OS/compiler
+if sys.platform == 'win32':
+    extra_compile_args += ['/std:c++17']
+else:
+    extra_compile_args += ['-std=c++17']
+
 # Only pybind11 and OpenCV; no Torch
 include_dirs += [pybind11.get_include()]
 
@@ -68,7 +74,7 @@ ext_modules = [
         library_dirs=library_dirs,
         libraries=libraries,
         language='c++',
-        extra_compile_args=['-std=c++17'] + extra_compile_args,
+        extra_compile_args=extra_compile_args,
     )
 ]
 
