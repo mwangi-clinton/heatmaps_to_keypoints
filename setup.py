@@ -43,12 +43,35 @@ if not include_dirs:
             include_dirs = [os.path.join(brew_prefix, 'include', 'opencv4')]
             library_dirs = [os.path.join(brew_prefix, 'lib')]
     elif sys.platform == 'win32':
-        # Windows fallback (assuming choco install to C:\opencv)
-        opencv_dir = os.environ.get('OPENCV_DIR', r'C:\opencv\build')
-        include_dirs = [os.path.join(opencv_dir, 'include')]
-        lib_dir = os.path.join(opencv_dir, 'x64', 'vc16', 'lib')  # Adjust vcXX based on your MSVC version (vc15/vc16/vc17)
-        library_dirs = [lib_dir]
-        libraries = ['opencv_core490', 'opencv_imgproc490', 'opencv_highgui490']  # Adjust version (e.g., 490 for 4.9.0); use 'opencv_world490' if built as single lib
+        # Windows fallback: robustly search for OpenCV headers from standard paths
+        include_dirs = []
+        library_dirs = []
+        libraries = ['opencv_world490'] # Default for choco Windows prebuilt
+
+        search_roots = [os.environ.get('OPENCV_DIR', ''), r'C:\opencv', r'C:\tools\opencv']
+        found = False
+        for root_dir in search_roots:
+            if not root_dir or not os.path.exists(root_dir):
+                continue
+            for root, dirs, files in os.walk(root_dir):
+                if 'opencv2' in dirs and os.path.exists(os.path.join(root, 'opencv2', 'opencv.hpp')):
+                    include_dirs = [root]
+                    parent_build = os.path.dirname(root)
+                    # Try to find lib dir
+                    for vc in ['vc17', 'vc16', 'vc15', 'vc14']:
+                        pot_lib = os.path.join(parent_build, 'x64', vc, 'lib')
+                        if os.path.exists(pot_lib):
+                            library_dirs = [pot_lib]
+                            break
+                    found = True
+                    break
+            if found:
+                break
+
+        # Fallback if nothing found
+        if not include_dirs:
+            include_dirs = [r'C:\opencv\build\include']
+            library_dirs = [r'C:\opencv\build\x64\vc16\lib']
     else:
         # Linux fallback
         include_dirs = ['/usr/include/opencv4']
