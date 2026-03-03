@@ -1,0 +1,14 @@
+LICENSE.txt
+MANIFEST.in
+README.md
+pyproject.toml
+setup.py
+src/heatmaps_to_keypoints.cc
+src/heatmaps_to_keypoints.egg-info/PKG-INFO
+src/heatmaps_to_keypoints.egg-info/SOURCES.txt
+src/heatmaps_to_keypoints.egg-info/dependency_links.txt
+src/heatmaps_to_keypoints.egg-info/requires.txt
+src/heatmaps_to_keypoints.egg-info/top_level.txt
+src/my_keypoints/__init__.py
+src/my_keypoints/bindings.cc
+tests/testing_keypoints.py

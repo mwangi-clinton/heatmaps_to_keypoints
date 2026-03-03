@@ -1,25 +1,24 @@
 [build-system]
-requires = [
-    "setuptools>=61",
-    "wheel",
-    "torch",
-]
+requires = ["setuptools>=61.0", "pybind11>=2.9.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "heatmaps_to_keypoints"
-version = "0.0.4"
-description = "Fast C++ heatmap-to-keypoints decoder for pose estimation"
+version = "0.1.0"      # Start with 0.1.0
+authors = [{ name = "Mwangi Kuya" }]
+description = "Keypoint detection from heatmaps"
 readme = "README.md"
-license = {file = "LICENSE.txt"}
-authors = [
-    {name = "Clinton Mwangi"}
-]
-requires-python = ">=3.9"
-dependencies = ["torch"]
-
+requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: C++",
-    "Operating System :: POSIX :: Linux",
+    "License :: OSI Approved :: MIT License",
 ]
+dependencies = ["opencv-python >= 4.0"]  # Declare OpenCV dep
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = false
+
+[tool.setuptools]
+# Extension modules are declared in setup.py (setup.py uses pybind11.get_include()
+# and configures the extension name `my_keypoints.bindings`).
