@@ -2,11 +2,11 @@ name: Build Wheels
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
     tags:
       - "v*"
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
   workflow_dispatch:
 
 jobs:
@@ -27,6 +27,12 @@ jobs:
         with:
           platforms: all
 
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install opencv pkg-config
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.16.5
         env:
@@ -36,13 +42,13 @@ jobs:
           CIBW_ARCHS_WINDOWS: "AMD64"
           CIBW_ARCHS_LINUX: "x86_64 aarch64"
           CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux_2_28"
-          
+
           # OPTIMIZATION: Install CPU-only Torch on Linux/Windows to save bandwidth
           # Standard install on Mac (no CPU-specific index usually needed/available in same way)
           CIBW_BEFORE_BUILD: "pip install torch==2.5.1"
           CIBW_BEFORE_BUILD_LINUX: "pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu"
           CIBW_BEFORE_BUILD_WINDOWS: "pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu"
-          
+
           # Platform-specific compiler flags
           # Linux: Use old ABI for PyTorch compatibility
           CIBW_ENVIRONMENT_LINUX: "CXXFLAGS='-O3 -D_GLIBCXX_USE_CXX11_ABI=0'"
@@ -50,7 +56,7 @@ jobs:
           CIBW_ENVIRONMENT_MACOS: "CXXFLAGS='-O3'"
           # Windows: Use MSVC optimization
           CIBW_ENVIRONMENT_WINDOWS: "CXXFLAGS='/O2'"
-          
+
           # CRITICAL: Exclude libtorch from being bundled (Linux)
           # We manually rename the wheel to manylinux tags to allow upload to PyPI,
           # as we skip auditwheel to avoid bundling the massive PyTorch libraries.
@@ -71,14 +77,14 @@ jobs:
           # There is no simple --exclude for delocate, so we SKIP repair for macOS.
           # We just copy the wheel to the destination. PyTorch extensions rely on user's installed torch.
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
-            delocate-listdeps {wheel} && mkdir -p {dest_dir} && cp {wheel} {dest_dir}/
+            delocate-wheel -w {dest_dir} {wheel}
 
           # REQUIRED: Test the wheel works
           # We install CPU-only torch manually to avoid downloading 2GB+ CUDA libs on Linux/Win
           CIBW_BEFORE_TEST: "pip install torch==2.5.1"
           CIBW_BEFORE_TEST_LINUX: "pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu"
           CIBW_BEFORE_TEST_WINDOWS: "pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu"
-          
+
           CIBW_TEST_COMMAND: "python {project}/tests/import_test.py"
 
       - name: Upload wheel artifacts
