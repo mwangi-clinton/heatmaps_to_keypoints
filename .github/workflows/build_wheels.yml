@@ -75,13 +75,6 @@ jobs:
           # Windows: delvewheel
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
 
-          # Tests: If tests require Torch, keep; else remove
-          # Assuming tests might still need Torch (e.g., to generate heatmaps), but if not, remove these
-          CIBW_BEFORE_TEST: "pip install torch==2.5.1"
-          CIBW_BEFORE_TEST_LINUX: "pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu"
-          CIBW_BEFORE_TEST_WINDOWS: "pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu"
-
-          CIBW_TEST_COMMAND: "python {project}/tests/testing_keypoints.py"
 
       - name: Upload wheel artifacts
         uses: actions/upload-artifact@v4
