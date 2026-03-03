@@ -52,7 +52,11 @@ jobs:
           CIBW_SKIP: "pp* *musllinux*"
           CIBW_ARCHS_WINDOWS: "AMD64"
           CIBW_ARCHS_LINUX: "x86_64 aarch64"
+          CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_28"
           CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux_2_28"
+
+          # Install OpenCV in the manylinux container
+          CIBW_BEFORE_ALL_LINUX: "dnf install -y epel-release && dnf install -y --enablerepo=powertools opencv opencv-devel pkgconf"
 
           # No Torch install for build
           CIBW_BEFORE_BUILD: "pip install pybind11" # Ensure pybind11 is available if needed
