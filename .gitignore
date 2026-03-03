@@ -3,3 +3,13 @@
 /dist
 /env
 
+
+# Ignore compiled extension modules and build artifacts
+*.so
+*.dylib
+build/
+dist/
+*.egg-info/
+wheelhouse/
+__pycache__/
+
