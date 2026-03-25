@@ -71,7 +71,7 @@ jobs:
 
           # Compiler flags (no Torch ABI specifics)
           CIBW_ENVIRONMENT_LINUX: "CXXFLAGS='-O3'"
-          CIBW_ENVIRONMENT_MACOS: "CXXFLAGS='-O3'"
+          CIBW_ENVIRONMENT_MACOS: "CXXFLAGS='-O3' LDFLAGS='-headerpad_max_install_names'"
           CIBW_ENVIRONMENT_WINDOWS: "CXXFLAGS='/O2'"
 
           # Linux: Simple auditwheel (no Torch to skip bundling)
