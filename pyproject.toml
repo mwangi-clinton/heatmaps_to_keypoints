@@ -4,9 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "heatmaps_to_keypoints"
+<<<<<<< HEAD
 version = "0.1.0"      # Start with 0.1.0
 authors = [{ name = "Mwangi Kuya" }]
 description = "Keypoint detection from heatmaps"
+=======
+version = "0.0.2"
+description = "Fast C++ heatmap-to-keypoints decoder for 2D human pose estimation."
+>>>>>>> temp-save
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
