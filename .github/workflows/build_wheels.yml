@@ -73,8 +73,8 @@ jobs:
           # macOS: delocate
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: "delocate-wheel -w {dest_dir} {wheel}"
 
-          # Windows: delvewheel
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
+          # Windows: delvewheel - Add OpenCV bin paths so it can find opencv_world490.dll
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair --add-path C:\\opencv\\build\\x64\\vc16\\bin;C:\\opencv\\build\\x64\\vc15\\bin -w {dest_dir} {wheel}"
 
 
       - name: Upload wheel artifacts
