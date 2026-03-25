@@ -63,21 +63,14 @@ jobs:
           CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_28"
           CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux_2_28"
 
-          # Install OpenCV in the manylinux container
           CIBW_BEFORE_ALL_LINUX: "dnf install -y epel-release && dnf install -y --enablerepo=powertools opencv opencv-devel pkgconf"
 
-          # No Torch install for build
-          CIBW_BEFORE_BUILD: "pip install pybind11" # Ensure pybind11 is available if needed
-
-          # Compiler flags (no Torch ABI specifics)
+          CIBW_BEFORE_BUILD: "pip install pybind11"
           CIBW_ENVIRONMENT_LINUX: "CXXFLAGS='-O3'"
           CIBW_ENVIRONMENT_MACOS: "CXXFLAGS='-O3' LDFLAGS='-headerpad_max_install_names'"
           CIBW_ENVIRONMENT_WINDOWS: "CXXFLAGS='/O2'"
-
-          # Linux: Simple auditwheel (no Torch to skip bundling)
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --exclude libtorch.so --exclude libtorch_cpu.so --exclude libtorch_python.so --exclude libc10.so -w {dest_dir} {wheel}"
 
-          # macOS: delocate (ignore missing PyTorch dylibs)
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: "delocate-wheel --ignore-missing-dependencies -w {dest_dir} {wheel}"
 
           # Windows: delvewheel relies on the customized PATH from the previous step
