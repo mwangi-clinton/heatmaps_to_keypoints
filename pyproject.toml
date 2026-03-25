@@ -20,3 +20,6 @@ where = ["src"]
 namespaces = false
 
 [tool.setuptools]
+
+[tool.cibuildwheel.windows]
+repair-wheel-command = "delvewheel repair --add-path C:\\tools\\opencv\\build\\x64\\vc15\\bin;C:\\tools\\opencv\\build\\x64\\vc14\\bin;C:\\tools\\opencv\\build\\x64\\vc16\\bin;C:\\opencv\\build\\x64\\vc15\\bin;C:\\opencv\\build\\x64\\vc14\\bin;C:\\opencv\\build\\x64\\vc16\\bin -w {dest_dir} {wheel}"
