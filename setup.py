@@ -37,9 +37,49 @@ def pkg_config_flags(package_name='opencv4'):
 opencv_includes, opencv_libdirs, opencv_libs, opencv_compile_args = pkg_config_flags('opencv4')
 
 if not opencv_includes:
-    opencv_includes = ["/usr/include/opencv4"]
+    if sys.platform == 'darwin':
+        # macOS Homebrew fallback (Apple Silicon or Intel)
+        brew_prefix = '/opt/homebrew' if os.uname().machine == 'arm64' else '/usr/local'
+        if os.path.exists(os.path.join(brew_prefix, 'include', 'opencv4')):
+            opencv_includes = [os.path.join(brew_prefix, 'include', 'opencv4')]
+            opencv_libdirs = [os.path.join(brew_prefix, 'lib')]
+    elif sys.platform == 'win32':
+        # Windows fallback: robustly search for OpenCV headers from standard paths
+        opencv_libs = ['opencv_world490'] # Default for choco Windows prebuilt
+        search_roots = [os.environ.get('OPENCV_DIR', ''), r'C:\opencv', r'C:\tools\opencv']
+        found = False
+        for root_dir in search_roots:
+            if not root_dir or not os.path.exists(root_dir):
+                continue
+            for root, dirs, files in os.walk(root_dir):
+                if 'opencv2' in dirs and os.path.exists(os.path.join(root, 'opencv2', 'opencv.hpp')):
+                    opencv_includes = [root]
+                    parent_build = os.path.dirname(root)
+                    for vc in ['vc17', 'vc16', 'vc15', 'vc14']:
+                        pot_lib = os.path.join(parent_build, 'x64', vc, 'lib')
+                        if os.path.exists(pot_lib):
+                            opencv_libdirs = [pot_lib]
+                            break
+                    found = True
+                    break
+            if found:
+                break
+        
+        # Absolute last resort Windows fallback
+        if not opencv_includes:
+            opencv_includes = [r'C:\opencv\build\include']
+            opencv_libdirs = [r'C:\opencv\build\x64\vc16\lib']
+            
+    # Generic Linux fallback if nothing else matched
+    if not opencv_includes:
+        opencv_includes = ['/usr/include/opencv4']
+        
 if not opencv_libs:
     opencv_libs = ["opencv_core", "opencv_imgproc"]
+
+# Add C++17 flag for Windows specifically if needed
+if sys.platform == 'win32' and '/std:c++17' not in opencv_compile_args:
+    opencv_compile_args.append('/std:c++17')
 
 setup(
     name="heatmaps_to_keypoints",
