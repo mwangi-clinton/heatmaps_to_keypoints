@@ -1,3 +1,7 @@
 import torch
 import heatmaps_to_keypoints
-print("Import generic success")
+import importlib.metadata
+
+print(importlib.metadata.version("heatmaps-to-keypoints"))
+# print("Extension loaded successfully!")
+# print((help(heatmaps_to_keypoints)))
