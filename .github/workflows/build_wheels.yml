@@ -81,7 +81,7 @@ jobs:
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: "delocate-wheel -w {dest_dir} {wheel}"
 
           # Windows: delvewheel relies on the customized PATH from the previous step
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: 'delvewheel repair --exclude "c10*.dll;torch*.dll;fbgemm.dll;asmjit.dll;libiomp*.dll;uv.dll;nv*.dll;cu*.dll" -w {dest_dir} {wheel}'
 
 
       - name: Upload wheel artifacts
