@@ -1,9 +1,11 @@
-from setuptools import setup, Extension
-import pybind11
+from setuptools import setup
+from torch.utils.cpp_extension import CppExtension, BuildExtension
 import subprocess
 import shlex
 import sys
 import os
+
+this_dir = os.path.dirname(os.path.abspath(__file__))
 
 def pkg_config_flags(package_name='opencv4'):
     try:
@@ -14,7 +16,6 @@ def pkg_config_flags(package_name='opencv4'):
         libraries = []
         extra_compile_args = []
 
-<<<<<<< HEAD
         for token in shlex.split(cflags):
             if token.startswith('-I'):
                 include_dirs.append(token[2:])
@@ -33,92 +34,28 @@ def pkg_config_flags(package_name='opencv4'):
     except Exception:
         return [], [], [], []
 
-# Get OpenCV paths (via pkg-config or fallback)
-include_dirs, library_dirs, libraries, extra_compile_args = pkg_config_flags('opencv4')
+opencv_includes, opencv_libdirs, opencv_libs, opencv_compile_args = pkg_config_flags('opencv4')
 
-if not include_dirs:
-    if sys.platform == 'darwin':
-        # macOS Homebrew fallback (Apple Silicon or Intel)
-        brew_prefix = '/opt/homebrew' if os.uname().machine == 'arm64' else '/usr/local'
-        if os.path.exists(os.path.join(brew_prefix, 'include', 'opencv4')):
-            include_dirs = [os.path.join(brew_prefix, 'include', 'opencv4')]
-            library_dirs = [os.path.join(brew_prefix, 'lib')]
-    elif sys.platform == 'win32':
-        # Windows fallback: robustly search for OpenCV headers from standard paths
-        include_dirs = []
-        library_dirs = []
-        libraries = ['opencv_world490'] # Default for choco Windows prebuilt
+if not opencv_includes:
+    opencv_includes = ["/usr/include/opencv4"]
+if not opencv_libs:
+    opencv_libs = ["opencv_core", "opencv_imgproc"]
 
-        search_roots = [os.environ.get('OPENCV_DIR', ''), r'C:\opencv', r'C:\tools\opencv']
-        found = False
-        for root_dir in search_roots:
-            if not root_dir or not os.path.exists(root_dir):
-                continue
-            for root, dirs, files in os.walk(root_dir):
-                if 'opencv2' in dirs and os.path.exists(os.path.join(root, 'opencv2', 'opencv.hpp')):
-                    include_dirs = [root]
-                    parent_build = os.path.dirname(root)
-                    # Try to find lib dir
-                    for vc in ['vc17', 'vc16', 'vc15', 'vc14']:
-                        pot_lib = os.path.join(parent_build, 'x64', vc, 'lib')
-                        if os.path.exists(pot_lib):
-                            library_dirs = [pot_lib]
-                            break
-                    found = True
-                    break
-            if found:
-                break
-
-        # Fallback if nothing found
-        if not include_dirs:
-            include_dirs = [r'C:\opencv\build\include']
-            library_dirs = [r'C:\opencv\build\x64\vc16\lib']
-    else:
-        # Linux fallback
-        include_dirs = ['/usr/include/opencv4']
-        library_dirs = ['/usr/lib64']  # Or /usr/lib
-
-    if not libraries:
-        libraries = ['opencv_core', 'opencv_imgproc', 'opencv_highgui']
-
-# Conditionally set compiler flag based on OS/compiler
-if sys.platform == 'win32':
-    extra_compile_args += ['/std:c++17']
-else:
-    extra_compile_args += ['-std=c++17']
-
-# Only pybind11 and OpenCV; no Torch
-include_dirs += [pybind11.get_include()]
-
-ext_modules = [
-    Extension(
-        name='my_keypoints.bindings',
-        sources=['src/my_keypoints/bindings.cc', 'src/heatmaps_to_keypoints.cc'],
-        include_dirs=include_dirs,
-        library_dirs=library_dirs,
-        libraries=libraries,
-        language='c++',
-        extra_compile_args=extra_compile_args,
-    )
-]
-
-setup(ext_modules=ext_modules)
-=======
 setup(
     name="heatmaps_to_keypoints",
-    version="0.0.2",
+    version="0.1.0",
     ext_modules=[
         CppExtension(
             name="heatmaps_to_keypoints",
             sources=[
                 "keypoint_heatmap.cpp",
             ],
-            include_dirs=[this_dir, "/usr/include/opencv4"],  
-            libraries=["opencv_core", "opencv_imgproc"],
-            extra_compile_args=["-O3"],
+            include_dirs=[this_dir] + opencv_includes,
+            library_dirs=opencv_libdirs,
+            libraries=opencv_libs,
+            extra_compile_args=["-O3"] + opencv_compile_args,
         )
     ],
     cmdclass={"build_ext": BuildExtension},
     zip_safe=False,
 )
->>>>>>> temp-save
