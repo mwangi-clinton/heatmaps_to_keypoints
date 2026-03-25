@@ -46,6 +46,13 @@ jobs:
           brew update
           brew install opencv@4 pkg-config
 
+      - name: Add OpenCV DLL to PATH (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          $dll_path = (Get-ChildItem -Path C:\ -Filter "opencv_world*490*.dll" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1).DirectoryName
+          echo "Found OpenCV DLL at: $dll_path"
+          echo "$dll_path" >> $env:GITHUB_PATH
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.16.5
         env:
@@ -73,8 +80,8 @@ jobs:
           # macOS: delocate
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: "delocate-wheel -w {dest_dir} {wheel}"
 
-          # Windows: delvewheel - Add OpenCV bin paths so it can find opencv_world490.dll
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair --add-path C:\\opencv\\build\\x64\\vc16\\bin;C:\\opencv\\build\\x64\\vc15\\bin -w {dest_dir} {wheel}"
+          # Windows: delvewheel relies on the customized PATH from the previous step
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
 
 
       - name: Upload wheel artifacts
