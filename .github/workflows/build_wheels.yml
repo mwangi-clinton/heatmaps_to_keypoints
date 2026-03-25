@@ -75,7 +75,7 @@ jobs:
           CIBW_ENVIRONMENT_WINDOWS: "CXXFLAGS='/O2'"
 
           # Linux: Simple auditwheel (no Torch to skip bundling)
-          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair -w {dest_dir} {wheel}"
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --exclude libtorch.so --exclude libtorch_cpu.so --exclude libtorch_python.so --exclude libc10.so -w {dest_dir} {wheel}"
 
           # macOS: delocate
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: "delocate-wheel -w {dest_dir} {wheel}"
